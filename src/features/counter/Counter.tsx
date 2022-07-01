@@ -1,68 +1,53 @@
-import React, { useState } from 'react';
+import styles from "./Counter.module.css";
+import React, {useEffect} from "react";
+import {useAppDispatch, useAppSelector} from "../../app/hooks";
+import {decrement, deleteCounter, increment} from "./CounterSlice";
 
-import { useAppSelector, useAppDispatch } from '../../app/hooks';
-import {
-  decrement,
-  increment,
-  incrementByAmount,
-  incrementAsync,
-  incrementIfOdd,
-  selectCount,
-} from './counterSlice';
-import styles from './Counter.module.css';
-
-export function Counter() {
-  const count = useAppSelector(selectCount);
-  const dispatch = useAppDispatch();
-  const [incrementAmount, setIncrementAmount] = useState('2');
-
-  const incrementValue = Number(incrementAmount) || 0;
-
-  return (
-    <div>
-      <div className={styles.row}>
-        <button
-          className={styles.button}
-          aria-label="Decrement value"
-          onClick={() => dispatch(decrement())}
-        >
-          -
-        </button>
-        <span className={styles.value}>{count}</span>
-        <button
-          className={styles.button}
-          aria-label="Increment value"
-          onClick={() => dispatch(increment())}
-        >
-          +
-        </button>
-      </div>
-      <div className={styles.row}>
-        <input
-          className={styles.textbox}
-          aria-label="Set increment amount"
-          value={incrementAmount}
-          onChange={(e) => setIncrementAmount(e.target.value)}
-        />
-        <button
-          className={styles.button}
-          onClick={() => dispatch(incrementByAmount(incrementValue))}
-        >
-          Add Amount
-        </button>
-        <button
-          className={styles.asyncButton}
-          onClick={() => dispatch(incrementAsync(incrementValue))}
-        >
-          Add Async
-        </button>
-        <button
-          className={styles.button}
-          onClick={() => dispatch(incrementIfOdd(incrementValue))}
-        >
-          Add If Odd
-        </button>
-      </div>
-    </div>
-  );
+export type CounterProps = {
+    index: number
 }
+
+const Counter = (props: CounterProps) => {
+
+    const dispatch = useAppDispatch();
+    const count = useAppSelector((state) => state.counters[props.index])
+
+    useEffect(() => {
+        if (props.index % 4 === 3) {
+            const intervalId = setInterval(() => {
+                dispatch(increment(props.index))
+            }, 1000);
+
+            return () => clearInterval(intervalId);
+        }
+    }, [count]);
+
+    return (
+        <div className={styles.row}>
+            { (props.index % 4 !== 3) && (<button
+                className={styles.button}
+                aria-label="Decrement value"
+                onClick={() => dispatch(decrement(props.index))}
+            >
+                -
+            </button>)}
+            <span className={styles.value}>{count}</span>
+            {(props.index % 4 !== 3) && <button
+                className={styles.button}
+                aria-label="Increment value"
+                onClick={() => dispatch(increment(props.index))}
+            >
+                +
+            </button>}
+            <button
+                className={styles.button}
+                aria-label="delete counter"
+                onClick={() => dispatch(deleteCounter(props.index))}
+            >
+                Удалить
+            </button>
+        </div>
+    )
+}
+
+export default Counter
